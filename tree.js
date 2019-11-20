@@ -35,8 +35,8 @@ function runTree(tree, vars, stdout) {
             }
             return value;
           case "string":
-            let arr = tree.children.slice(1, tree.children.length - 1).map(item => item.token).join("").split("");
-            return arr.length === 1 ? arr[0] : arr;
+            let str = tree.children[0].token.slice(1).replace('"', '').split('');
+            return str.length === 1 ? str[0] : str;
           default:
             throw new Error(`Cannot get value for type '${tree.type}'`);
     }

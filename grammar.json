@@ -42,10 +42,24 @@
     },
     {
       "name": "string",
-      "expr": "QUOTE (NUMBER|IDENTIFIER)* QUOTE"
+      "expr": "(STRING|half_string)"
+    },
+    {
+      "name": "half_string",
+      "expr": "(QUOTE|STRING_PART) QUOTE",
+      "comment 2": "Lexer will convert 'QUOTE QUOTE' and 'STRING_PART QUOTE' to 'STRING'",
+      "comment 3": "Needed for throwing an error in the case the user forgot the end quote"
     }
   ],
   "tokens": [
+    {
+      "name": "STRING",
+      "expr": "QUOTE[^QUOTE]*QUOTE"
+    },
+    {
+      "name": "STRING_PART",
+      "expr": "QUOTE[^QUOTE]+"
+    },
     {
       "name": "QUOTE",
       "expr": "\""

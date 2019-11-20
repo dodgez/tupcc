@@ -11,5 +11,5 @@
 )
 
 (print (indexOf (tuple 1 2 3 4) 2 0))
-(print (indexOf "Hello World" "W" 0))
+(print (indexOf "Hello, World!" "W" 0))
 (print (indexOf (tuple 1 2 3 4) 5 0))
