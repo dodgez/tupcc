@@ -1,5 +1,5 @@
 (define indexOf
-  (lambda (tup val count) (
+  (lambda (tup val count)
     (if (lte (len tup) 0) (
       (- 0 1)
     ) (
@@ -7,7 +7,7 @@
         (indexOf (tail tup) val (+ count 1))
       ))
     ))
-  ))
+  )
 )
 
 (print (indexOf (tuple 1 2 3 4) 2 0))

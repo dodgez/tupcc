@@ -10,7 +10,7 @@
     },
     {
       "name": "function_definition",
-      "expr": "LAMBDA_KEY LPAREN (IDENTIFIER)* RPAREN wrapped_expression"
+      "expr": "LAMBDA_KEY LPAREN (IDENTIFIER)* RPAREN (expression)+"
     },
     {
       "name": "wrapped_function_definition",
@@ -26,7 +26,7 @@
     },
     {
       "name": "while_statement",
-      "expr": "WHILE_KEY (IDENTIFIER|BOOLEAN|expression) wrapped_expression"
+      "expr": "WHILE_KEY (IDENTIFIER|BOOLEAN|expression) (expression)+"
     },
     {
       "name": "wrapped_expression",

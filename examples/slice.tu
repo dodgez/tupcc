@@ -1,5 +1,5 @@
 (define slice
-  (lambda (tup start end) (
+  (lambda (tup start end)
     (if (gt start 0) (
       (slice (tail tup) (- start 1) (- end 1))
     ) (
@@ -9,7 +9,7 @@
         (tuple)
       ))
     ))
-  ))
+  )
 )
 
 (print (slice (tuple 1 2 3 4 5) 1 3))

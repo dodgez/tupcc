@@ -75,15 +75,16 @@ function runTree(tree, vars, stdout) {
             cond = getValue(while_node.children[1], "boolean");
             requireTrueOrFalse(cond);
             let last_value_found = 0;
+            let exprs = while_node.children.slice(2, while_node.children.length);
+            let exprs_values;
 
             while (cond) {
-              let new_tree = while_node.children[2];
-              let exprs = new_tree.children.slice(1, new_tree.children.length - 1);
-              exprs = exprs.map(expr => {
-                return getValue(expr);
+              exprs_values = exprs.map(expr => {
+                let value = getValue(expr);
+                return value;
               });
 
-              last_value_found = exprs.length > 0 ? exprs[exprs.length - 1] : 0;
+              last_value_found = exprs_values.length > 0 ? exprs_values[exprs_values.length - 1] : 0;
               cond = getValue(while_node.children[1], "boolean");
               requireTrueOrFalse(cond);
             }
@@ -275,8 +276,7 @@ function runTree(tree, vars, stdout) {
             });
             vars = new_vars;
 
-            let function_exprs = function_node.children.find(child => child.type === "wrapped_expression");
-            function_exprs = function_exprs.children.slice(1, function_exprs.children.length - 1);
+            let function_exprs = function_node.children.slice(function_node.children.findIndex(child => child.type === "RPAREN")+1);
 
             function_exprs = function_exprs.map(function_expr => {
               return getValue(function_expr);
