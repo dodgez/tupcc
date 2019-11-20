@@ -1,5 +1,5 @@
 {
-  "name": "tuple",
+  "name": "tupcc",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,15 +10,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dodgez/tuple.git"
+    "url": "git+https://github.com/dodgez/tupcc.git"
   },
   "keywords": [],
   "author": "Zachary Dodge",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/dodgez/tuple/issues"
+    "url": "https://github.com/dodgez/tupcc/issues"
   },
-  "homepage": "https://github.com/dodgez/tuple#readme",
+  "homepage": "https://github.com/dodgez/tupcc#readme",
   "dependencies": {
     "commander": "^4.0.1",
     "lngr": "^2.0.4",
