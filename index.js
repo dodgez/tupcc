@@ -46,8 +46,6 @@ if (!program.interactive || (program.interactive && typeof(input_file) !== 'unde
 }
 
 let vars = {};
-let continuing = false;
-let continued_line = "";
 
 function runCode(line) {
   let token_stream = lngr.utils.getTokenStream(lngr.lexer.lex(tokens, lngr.utils.getStringStream(line)));
@@ -60,17 +58,21 @@ if (code) {
 }
 
 if (!program.interactive) process.exit(0);
+
+let continuing = false;
+let continued_line = "";
+
 rl.prompt();
 rl.on('line', line => {
   if (line.endsWith("\\")) {
     if (!continuing) continued_line = "";
-    continued_line += "\n" + line.slice(0, line.length - 1);
+    continued_line += (continuing ? ' \n' : '') + line.slice(0, line.length - 1);
     continuing = true;
     rl.prompt();
     return;
   } else {
     if (continuing) {
-      continued_line += line;
+      continued_line += ' \n' + line;
     } else {
       continued_line = line;
     }
