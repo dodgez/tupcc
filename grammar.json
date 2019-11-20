@@ -1,0 +1,108 @@
+{
+  "rules": [
+    {
+      "name": "program",
+      "expr": "(expression)*"
+    },
+    {
+      "name": "expression",
+      "expr": "LPAREN (function_definition|function_call|if_statement|while_statement) RPAREN"
+    },
+    {
+      "name": "function_definition",
+      "expr": "LAMBDA_KEY LPAREN (IDENTIFIER)* RPAREN wrapped_expression"
+    },
+    {
+      "name": "wrapped_function_definition",
+      "expr": "LPAREN function_definition RPAREN"
+    },
+    {
+      "name": "function_call",
+      "expr": "(OPERATION|IDENTIFIER|wrapped_function_definition) (number|IDENTIFIER|BOOLEAN|string|expression)*"
+    },
+    {
+      "name": "if_statement",
+      "expr": "IF_KEY (IDENTIFIER|BOOLEAN|expression) (number|IDENTIFIER|string|wrapped_expression) (number|IDENTIFIER|string|wrapped_expression)"
+    },
+    {
+      "name": "while_statement",
+      "expr": "WHILE_KEY (IDENTIFIER|BOOLEAN|expression) wrapped_expression"
+    },
+    {
+      "name": "wrapped_expression",
+      "expr": "LPAREN (expression)* RPAREN"
+    },
+    {
+      "name": "number",
+      "expr": "NUMBER (decimal)?"
+    },
+    {
+      "name": "decimal",
+      "expr": "DECIMAL NUMBER"
+    },
+    {
+      "name": "string",
+      "expr": "QUOTE (NUMBER|IDENTIFIER)* QUOTE"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "QUOTE",
+      "expr": "\""
+    },
+    {
+      "name": "LAMBDA_KEY",
+      "expr": "lambda"
+    },
+    {
+      "name": "IF_KEY",
+      "expr": "if"
+    },
+    {
+      "name": "WHILE_KEY",
+      "expr": "while"
+    },
+    {
+      "name": "BOOLEAN",
+      "expr": "(true|false)"
+    },
+    {
+      "name": "OPERATION",
+      "expr": "(\\+|-|\\*|\\/|\\^|%|\\||&)"
+    },
+    {
+      "name": "LPAREN",
+      "expr": "\\("
+    },
+    {
+      "name": "RPAREN",
+      "expr": "\\)"
+    },
+    {
+      "name": "IDENTIFIER",
+      "expr": "[a-zA-Z_][a-zA-Z0-9_]*"
+    },
+    {
+      "name": "NUMBER",
+      "expr": "[0-9]+"
+    },
+    {
+      "name": "DECIMAL",
+      "expr": "\\."
+    },
+    {
+      "name": "COMMENT",
+      "expr": "(SLASH)(SLASH)[^\n]*\n?",
+      "ignore": true
+    },
+    {
+      "name": "SLASH",
+      "expr": "/"
+    },
+    {
+      "name": "WHITESPACE",
+      "expr": "( |\t|\r|\n)+",
+      "ignore": true
+    }
+  ]
+}
