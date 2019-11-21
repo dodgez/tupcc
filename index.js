@@ -35,10 +35,6 @@ if (program.interactive && program.compile) {
   process.exit(1);
 }
 
-if (program.output && !program.compile) {
-  console.warn('Ignoring output file because the compile flag was not set');
-}
-
 if (!program.interactive || (program.interactive && typeof(input_file) !== 'undefined')) {
   if (typeof(input_file) === 'undefined') {
     console.error('No input file specified!');
