@@ -2,7 +2,7 @@ const expect = require('chai').expect;
 const fs = require('fs');
 const lngr = require('lngr');
 
-const runTree = require('../src/run.js');
+const run = require('../src/run.js');
 const grammar = require("../grammar.json");
 
 describe('Runs', function() {
@@ -30,7 +30,7 @@ describe('Runs', function() {
     const tree = getCode('examples/fibonacci.tu');
     const vars = {};
 
-    expect(runTree(tree, vars)).to.deep.equal([
+    expect(run(tree, vars)).to.deep.equal([
       "(tuple 1 1 2 3 5 8 13 21 34 55 89 144 233)",
       "(tuple 1 2 3 5 8 13 21 34 55 89 144 233 377)",
     ]);
@@ -40,7 +40,7 @@ describe('Runs', function() {
     const tree = getCode('examples/forIn.tu');
     const vars = {};
 
-    expect(runTree(tree, vars)).to.deep.equal([
+    expect(run(tree, vars)).to.deep.equal([
       "(tuple 2 3 4)"
     ]);
   });
@@ -49,7 +49,7 @@ describe('Runs', function() {
     const tree = getCode('examples/indexOf.tu');
     const vars = {};
 
-    expect(runTree(tree, vars)).to.deep.equal([
+    expect(run(tree, vars)).to.deep.equal([
       1,
       7,
       -1
@@ -60,7 +60,7 @@ describe('Runs', function() {
     const tree = getCode('examples/last.tu');
     const vars = {};
 
-    expect(runTree(tree, vars)).to.deep.equal([
+    expect(run(tree, vars)).to.deep.equal([
       5,
       5
     ]);
@@ -70,7 +70,7 @@ describe('Runs', function() {
     const tree = getCode('examples/range.tu');
     const vars = {};
 
-    expect(runTree(tree, vars)).to.deep.equal([
+    expect(run(tree, vars)).to.deep.equal([
       "(tuple 2 3 4 5 6 7 8 9)",
       "(tuple )"
     ]);
@@ -80,7 +80,7 @@ describe('Runs', function() {
     const tree = getCode('examples/reverse.tu');
     const vars = {};
 
-    expect(runTree(tree, vars)).to.deep.equal([
+    expect(run(tree, vars)).to.deep.equal([
       "(tuple 3 2 1)",
       "(tuple ! d l r o W   , o l l e H)"
     ]);
@@ -90,7 +90,7 @@ describe('Runs', function() {
     const tree = getCode('examples/runJS.tu');
     const vars = {};
 
-    expect(runTree(tree, vars)).to.deep.equal([
+    expect(run(tree, vars)).to.deep.equal([
       "(tuple H e l l o ,   W o r l d   f r o m   J a v a S c r i p t !)"
     ]);
   });
@@ -99,7 +99,7 @@ describe('Runs', function() {
     const tree = getCode('examples/slice.tu');
     const vars = {};
 
-    expect(runTree(tree, vars)).to.deep.equal([
+    expect(run(tree, vars)).to.deep.equal([
       "(tuple 2 3)",
       "(tuple )"
     ]);

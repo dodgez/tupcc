@@ -5,7 +5,7 @@ const { findType, coerceBack, coerceValue, requireTrueOrFalse } = require('./typ
 function runProgram(tree, vars) {
   let program_stdout = [];
   for (let child of tree.children) {
-    prettyPrint(runTree(child, vars, program_stdout));
+    prettyPrint(run(child, vars, program_stdout));
   }
   return program_stdout;
 }
@@ -27,7 +27,7 @@ function runExpression(tree, vars, stdout) {
 
 function runIfStatement(tree, vars, stdout) {
   let if_node = tree.children[1];
-  cond = getValue(if_node.children[1], vars, stdout, "boolean");
+  let cond = getValue(if_node.children[1], vars, stdout, "boolean");
   requireTrueOrFalse(cond);
 
   let new_tree = if_node.children[cond ? 2 : 3];
@@ -291,7 +291,7 @@ function getValue(tree, vars, stdout, force_type) {
       }
       return tree.token === "true" ? true : false;
     case "expression":
-      let value = runTree(tree, vars, stdout);
+      let value = run(tree, vars, stdout);
       let type = findType(value);
       if (force_type && force_type !== type) {
         throw new Error(`Expected type '${force_type}' but got type '${type}'`);
@@ -305,8 +305,7 @@ function getValue(tree, vars, stdout, force_type) {
   }
 }
 
-function runTree(tree, vars, stdout = []) {
-
+function run(tree, vars, stdout = []) {
   switch (tree.type) {
     case "program":
       return runProgram(tree, vars);
@@ -315,4 +314,4 @@ function runTree(tree, vars, stdout = []) {
   }
 }
 
-module.exports = runTree;
+module.exports = run;
