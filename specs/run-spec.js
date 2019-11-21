@@ -2,7 +2,7 @@ const expect = require('chai').expect;
 const fs = require('fs');
 const lngr = require('lngr');
 
-const runTree = require('../src/tree.js');
+const runTree = require('../src/run.js');
 const grammar = require("../grammar.json");
 
 describe('Runs', function() {

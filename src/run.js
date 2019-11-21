@@ -13,7 +13,6 @@ function runProgram(tree, vars) {
 function runExpression(tree, vars, stdout) {
   expectNChildren(tree, 3);
   let expression_type = tree.children[1].type;
-  let cond;
   switch (expression_type) {
     case "if_statement":
       return runIfStatement(tree, vars, stdout);

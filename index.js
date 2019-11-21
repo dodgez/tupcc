@@ -5,7 +5,7 @@ const readline = require('readline');
 
 const grammar = require("./grammar.json");
 const package = require('./package.json');
-const runTree = require("./src/tree");
+const runTree = require("./src/run");
 
 const tokens = lngr.lexer.formatTokens(grammar.tokens);
 const rules = lngr.parser.formatRules(grammar.rules);
