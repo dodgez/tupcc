@@ -301,8 +301,8 @@ function getValue(tree, vars, stdout, force_type) {
       
       return vars[tree.token].value;
     case "BOOLEAN":
-      if (tree.token !== "true" && tree.token !== "false") {
-        throw new Error(`Expected boolean type but got '${tree.token}'`);
+      if (force_type && force_type !== "boolean") {
+        throw new Error(`Expected type '${force_type}' but got type 'boolean'`);
       }
       return tree.token === "true" ? true : false;
     case "expression":
