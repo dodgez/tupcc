@@ -1,5 +1,9 @@
+const prettyPrint = require('./print');
+const { expectNChildren } = require('./utils');
+const { findType, coerceBack, coerceValue, requireTrueOrFalse } = require('./type');
+
 function runTree(tree, vars, stdout) {
-  function getValue(tree, force_type) {
+  function getValue(tree, vars, force_type) {
     switch (tree.type) {
       case "number":
         if (force_type && force_type !== "number") {
@@ -48,8 +52,7 @@ function runTree(tree, vars, stdout) {
       for (let child of tree.children) {
         prettyPrint(runTree(child, vars, program_stdout));
       }
-      if (program_stdout.length > 0) console.log(program_stdout.join("\n"));
-      return;
+      return program_stdout;
     case "expression":
       expectNChildren(tree, 3);
       let expression_type = tree.children[1].type;
@@ -57,22 +60,22 @@ function runTree(tree, vars, stdout) {
       switch (expression_type) {
         case "if_statement":
           let if_node = tree.children[1];
-          cond = getValue(if_node.children[1], "boolean");
+          cond = getValue(if_node.children[1], vars, "boolean");
           requireTrueOrFalse(cond);
 
           let new_tree = if_node.children[cond ? 2 : 3];
           if (new_tree.type === "wrapped_expression") {
             let exprs = new_tree.children.slice(1, new_tree.children.length - 1);
             exprs = exprs.map(expr => {
-              return getValue(expr);
+              return getValue(expr, vars);
             });
             return exprs.length > 0 ? exprs[exprs.length - 1] : 0;
           } else {
-            return getValue(new_tree);
+            return getValue(new_tree, vars);
           }
           case "while_statement":
             let while_node = tree.children[1];
-            cond = getValue(while_node.children[1], "boolean");
+            cond = getValue(while_node.children[1], vars, "boolean");
             requireTrueOrFalse(cond);
             let last_value_found = 0;
             let exprs = while_node.children.slice(2, while_node.children.length);
@@ -80,12 +83,12 @@ function runTree(tree, vars, stdout) {
 
             while (cond) {
               exprs_values = exprs.map(expr => {
-                let value = getValue(expr);
+                let value = getValue(expr, vars);
                 return value;
               });
 
               last_value_found = exprs_values.length > 0 ? exprs_values[exprs_values.length - 1] : 0;
-              cond = getValue(while_node.children[1], "boolean");
+              cond = getValue(while_node.children[1], vars, "boolean");
               requireTrueOrFalse(cond);
             }
 
@@ -98,19 +101,26 @@ function runTree(tree, vars, stdout) {
             let function_call_type = function_node.children[0].type;
             if (function_call_type === "OPERATION") {
               expectNChildren(function_node, 3);
-              let eval_str = getValue(function_node.children[1], "number").toString();
+              let eval_str = getValue(function_node.children[1], vars, "number").toString();
               for (let child of function_node.children.slice(2, function_node.children.length)) {
-                eval_str += function_name + getValue(child, "number").toString();
+                eval_str += function_name + getValue(child, vars, "number").toString();
               }
               return eval(eval_str);
             } else if (function_call_type === "IDENTIFIER") {
               let value;
               let first_value;
               switch (function_name) {
+                case "requireRun":
+                  expectNChildren(function_node, 3);
+                  let module = require(getValue(function_node.children[1], vars, "tuple").join(""));
+                  let func_name = getValue(function_node.children[2], vars, "tuple").join("");
+                  let func_to_call = func_name ? module[func_name] : module;
+                  let args = function_node.children.slice(3).map(item => coerceValue(getValue(item)), vars);
+                  return coerceBack(func_to_call(...args));
                 case "print":
                   expectNChildren(function_node, 1);
                   for (let child of function_node.children.slice(1)) {
-                    stdout.push(prettyPrint(getValue(child)));
+                    stdout.push(prettyPrint(getValue(child, vars)));
                   }
                   return function_node.children.length - 1 > 0 ? stdout[stdout.length - 1] : "";
                 case "set":
@@ -122,7 +132,7 @@ function runTree(tree, vars, stdout) {
                   } else if (function_name === "set" && !vars.hasOwnProperty(new_var_name)) {
                     throw new Error(`Identifier '${new_var_name}' is not defined`);
                   }
-                  let new_value = getValue(function_node.children[2]);
+                  let new_value = getValue(function_node.children[2], vars);
                   let new_type = findType(new_value);
                   vars[new_var_name] = {
                     name: new_var_name,
@@ -132,21 +142,21 @@ function runTree(tree, vars, stdout) {
                   return new_value;
                 case "pow":
                   expectNChildren(function_node, 2);
-                  value = getValue(function_node.children[1], "number");
+                  value = getValue(function_node.children[1], vars, "number");
                   for (let child of function_node.children.slice(2)) {
-                    value = value ** getValue(child, "number");
+                    value = value ** getValue(child, vars, "number");
                   }
                   return value;
                 case "not":
                   expectNChildren(function_node, 2);
-                  value = getValue(function_node.children[1]);
+                  value = getValue(function_node.children[1], vars);
                   requireTrueOrFalse(value);
                   return !value;
                 case "and":
                   expectNChildren(function_node, 2);
                   value = true;
                   for (let child of function_node.children.slice(1)) {
-                    let new_value = getValue(child);
+                    let new_value = getValue(child, vars);
                     requireTrueOrFalse(new_value);
                     value = value && new_value;
                   }
@@ -155,16 +165,16 @@ function runTree(tree, vars, stdout) {
                   expectNChildren(function_node, 2);
                   value = false;
                   for (let child of function_node.children.slice(1)) {
-                    let new_value = getValue(child);
+                    let new_value = getValue(child, vars);
                     requireTrueOrFalse(new_value);
                     value = value || new_value;
                   }
                   return value;
                 case "eq":
                   expectNChildren(function_node, 2);
-                  first_value = getValue(function_node.children[1]);
+                  first_value = getValue(function_node.children[1], vars);
                   for (let child of function_node.children.slice(2)) {
-                    let new_value = getValue(child);
+                    let new_value = getValue(child, vars);
                     if (new_value !== first_value) {
                       return false;
                     }
@@ -172,9 +182,9 @@ function runTree(tree, vars, stdout) {
                   return true;
                 case "neq":
                   expectNChildren(function_node, 2);
-                  first_value = getValue(function_node.children[1]);
+                  first_value = getValue(function_node.children[1], vars);
                   for (let child of function_node.children.slice(2)) {
-                    let new_value = getValue(child);
+                    let new_value = getValue(child, vars);
                     if (new_value !== first_value) {
                       return true;
                     }
@@ -183,9 +193,9 @@ function runTree(tree, vars, stdout) {
                 case "lte":
                 case "lt":
                   expectNChildren(function_node, 3);
-                  first_value = getValue(function_node.children[1], "number");
+                  first_value = getValue(function_node.children[1], vars, "number");
                   for (let child of function_node.children.slice(2)) {
-                    let new_value = getValue(child, "number");
+                    let new_value = getValue(child, vars, "number");
                     if (new_value < first_value) {
                       return false;
                     } else if (new_value === first_value && function_name === "lt") {
@@ -196,9 +206,9 @@ function runTree(tree, vars, stdout) {
                 case "gte":
                 case "gt":
                   expectNChildren(function_node, 3);
-                  first_value = getValue(function_node.children[1], "number");
+                  first_value = getValue(function_node.children[1], vars, "number");
                   for (let child of function_node.children.slice(2)) {
-                    let new_value = getValue(child, "number");
+                    let new_value = getValue(child, vars, "number");
                     if (new_value > first_value) {
                       return false;
                     } else if (new_value === first_value && function_name === "gt") {
@@ -209,11 +219,11 @@ function runTree(tree, vars, stdout) {
                 case "tuple":
                   expectNChildren(function_node, 1);
                   let tuple_items = function_node.children.slice(1);
-                  return tuple_items.map(item => getValue(item));
+                  return tuple_items.map(item => getValue(item, vars));
                 case "is_tuple":
                   expectNChildren(function_node, 2);
                   for (let tuple_option of function_node.children.slice(1)) {
-                    let type = findType(getValue(tuple_option));
+                    let type = findType(getValue(tuple_option, vars));
                     if (type !== "tuple") {
                       return false;
                     }
@@ -223,35 +233,35 @@ function runTree(tree, vars, stdout) {
                   expectNChildren(function_node, 2);
                   let heads = [];
                   for (let tuple_option of function_node.children.slice(1)) {
-                    heads.push(getValue(tuple_option, "tuple")[0]);
+                    heads.push(getValue(tuple_option, vars, "tuple")[0]);
                   }
                   return heads.length === 1 ? heads[0] : heads;
                 case "tail":
                   expectNChildren(function_node, 2);
                   let tails = [];
                   for (let tuple_option of function_node.children.slice(1)) {
-                    tails.push(getValue(tuple_option, "tuple").slice(1));
+                    tails.push(getValue(tuple_option, vars, "tuple").slice(1));
                   }
                   return tails.length === 1 ? tails[0] : tails;
                 case "len":
                   expectNChildren(function_node, 2);
                   let lens = [];
                   for (let tuple_option of function_node.children.slice(1)) {
-                    lens.push(getValue(tuple_option, "tuple").length);
+                    lens.push(getValue(tuple_option, vars, "tuple").length);
                   }
                   return lens.length === 1 ? lens[0] : lens;
                 case "cat":
                   expectNChildren(function_node, 2);
-                  let base_array = getValue(function_node.children[1], "tuple").copyWithin();
+                  let base_array = getValue(function_node.children[1], vars, "tuple").copyWithin();
                   for (let child of function_node.children.slice(2)) {
-                    base_array = base_array.concat(getValue(child, "tuple").copyWithin());
+                    base_array = base_array.concat(getValue(child, vars, "tuple").copyWithin());
                   }
                   return base_array;
                 case "ret":
                   expectNChildren(function_node, 2);
-                  return getValue(function_node.children[1]);
+                  return getValue(function_node.children[1], vars);
                 default:
-                  function_node = getValue(function_node.children[0], "function");
+                  function_node = getValue(function_node.children[0], vars, "function");
                   break;
               }
             } else if (function_call_type === "wrapped_function_definition") {
@@ -267,7 +277,7 @@ function runTree(tree, vars, stdout) {
 
             let new_vars = Object.assign({}, vars);
             var_names.forEach((var_name, i) => {
-              let value = getValue(args[i]);
+              let value = getValue(args[i], vars);
               new_vars[var_name.token] = {
                 value,
                 type: findType(value),
@@ -279,13 +289,13 @@ function runTree(tree, vars, stdout) {
             let function_exprs = function_node.children.slice(function_node.children.findIndex(child => child.type === "RPAREN")+1);
 
             function_exprs = function_exprs.map(function_expr => {
-              return getValue(function_expr);
+              return getValue(function_expr, vars);
             });
 
             return function_exprs.length > 0 ? function_exprs[function_exprs.length - 1] : 0;
           case "tuple_op":
             let tuple_op_node = tree.children[1];
-            let tuple_value = getValue(tuple_op_node.children[1], "tuple");
+            let tuple_value = getValue(tuple_op_node.children[1], vars, "tuple");
             switch (tuple_op_node.children[0].token) {
               case "head":
                 return tuple_value[0];
@@ -297,42 +307,6 @@ function runTree(tree, vars, stdout) {
       }
       break;
   }
-}
-
-function prettyPrint(value) {
-  let type = findType(value);
-
-  if (type === "tuple") {
-    return "(tuple " + value.map(item => prettyPrint(item)).join(' ') + ")";
-  } else if (type === "function") {
-    return "(function definition)";
-  } else {
-    return value;
-  }
-}
-
-function findType(value) {
-  if (Array.isArray(value)) {
-    return "tuple";
-  } else if (typeof (value) === "object") {
-    return "function";
-  } else {
-    return typeof (value);
-  }
-}
-
-function expectNChildren(tree, n) {
-  if (tree.children.length < n) {
-    throw new Error(`Expected ${JSON.stringify(tree.children)} to have at least ${n} children but has ${tree.children.length}`);
-  }
-}
-
-function requireTrueOrFalse(value) {
-  if (typeof (value) !== "boolean") {
-    throw new Error(`Expected true or false but got '${value}' instead`);
-  }
-
-  return true;
 }
 
 module.exports = runTree;

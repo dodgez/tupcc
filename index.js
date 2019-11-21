@@ -5,7 +5,7 @@ const readline = require('readline');
 
 const grammar = require("./grammar.json");
 const package = require('./package.json');
-const runTree = require("./tree.js");
+const runTree = require("./src/tree");
 
 const tokens = lngr.lexer.formatTokens(grammar.tokens);
 const rules = lngr.parser.formatRules(grammar.rules);
@@ -50,7 +50,8 @@ let vars = {};
 function runCode(line) {
   let token_stream = lngr.utils.getTokenStream(lngr.lexer.lex(tokens, lngr.utils.getStringStream(line)));
   let tree = lngr.parser.parse(rules, token_stream);
-  runTree(tree, vars);
+  let stdout = runTree(tree, vars);
+  if (stdout && stdout.length > 0) console.log(stdout.join("\n"));
 }
 
 if (code) {
