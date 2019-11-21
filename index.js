@@ -5,6 +5,8 @@ const readline = require('readline');
 
 const grammar = require("./grammar.json");
 const package = require('./package.json');
+
+const compile = require('./src/compile');
 const run = require("./src/run");
 
 const tokens = lngr.lexer.formatTokens(grammar.tokens);
@@ -19,12 +21,23 @@ let code;
 
 program.version(package.version)
   .arguments('[input file]')
-  .option('-i, --interactive')
+  .option('-i, --interactive', 'run in interactive mode')
+  .option('-c, --compile', 'compile the input file')
+  .option('-o, --output <output_file>', 'specify the output compiled file', './a.js')
   .action(function(file) {
     input_file = file;
   });
 
 program.parse(process.argv);
+
+if (program.interactive && program.compile) {
+  console.error('Interactive and compile mode are mutually exclusive.');
+  process.exit(1);
+}
+
+if (program.output && !program.compile) {
+  console.warn('Ignoring output file because the compile flag was not set');
+}
 
 if (!program.interactive || (program.interactive && typeof(input_file) !== 'undefined')) {
   if (typeof(input_file) === 'undefined') {
@@ -55,7 +68,14 @@ function runCode(line) {
 }
 
 if (code) {
-  runCode(code);
+  if (program.compile) {
+    let token_stream = lngr.utils.getTokenStream(lngr.lexer.lex(tokens, lngr.utils.getStringStream(code)));
+    let tree = lngr.parser.parse(rules, token_stream);
+    let output_code = compile(tree);
+    fs.writeFileSync(program.output, output_code);
+  } else {
+    runCode(code);
+  }
 }
 
 if (!program.interactive) process.exit(0);
