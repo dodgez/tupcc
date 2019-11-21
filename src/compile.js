@@ -154,6 +154,8 @@ function compileFunctionCallIdentifier(tree) {
       return `${args[0]}[0]`;
     case 'tail':
       return `${args[0]}.slice(1)`;
+    case 'len':
+      return `${args[0]}.length`;
     case 'cat':
       return `${args[0]}.concat(${args[1]})`;
     case 'ret':
