@@ -82,7 +82,7 @@ describe('Runs', function() {
 
     expect(run(tree, vars)).to.deep.equal([
       "(tuple 3 2 1)",
-      "(tuple ! d l r o W   , o l l e H)"
+      "!dlroW ,olleH"
     ]);
   });
 
@@ -91,7 +91,7 @@ describe('Runs', function() {
     const vars = {};
 
     expect(run(tree, vars)).to.deep.equal([
-      "(tuple H e l l o ,   W o r l d   f r o m   J a v a S c r i p t !)"
+      "Hello, World from JavaScript!"
     ]);
   });
 

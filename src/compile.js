@@ -158,6 +158,10 @@ function compileFunctionCallIdentifier(tree) {
       return `${args[0]}.concat(${args[1]})`;
     case 'ret':
       return `${args[0]}`;
+    case 'tupleToStr':
+      return `${args[0]}.join('')`;
+    case 'strToTuple':
+      return `${args[0]}.split('')`;
     default:
       return `${function_name}(${args.join(', ')})`;
   }
@@ -175,6 +179,9 @@ function tryCompile(tree) {
       let float_part;
       if (float) float_part = tree.children[1].children[1].token;
       return parseFloat(`${integer_part}${float ? `.${float_part}` : ""}`);
+    case "string":
+      let str = tree.children[0].token.slice(1).replace('"', '');
+      return `"${str}"`;
     default:
       throw new Error(`Unexpected type to compile ${tree.type}`);
   }

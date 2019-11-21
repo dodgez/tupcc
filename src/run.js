@@ -81,8 +81,8 @@ function runFunctionCall(tree, vars, stdout) {
     switch (function_name) {
       case "requireRun":
         expectNChildren(function_node, 3);
-        let module = require(getValue(function_node.children[1], vars, stdout, "tuple").join(""));
-        let func_name = getValue(function_node.children[2], vars, stdout, "tuple").join("");
+        let module = require(getValue(function_node.children[1], vars, stdout, "string"));
+        let func_name = getValue(function_node.children[2], vars, stdout, "string");
         let func_to_call = func_name ? module[func_name] : module;
         let args = function_node.children.slice(3).map(item => coerceValue(getValue(item, vars, stdout)));
         return coerceBack(func_to_call(...args));
@@ -226,6 +226,21 @@ function runFunctionCall(tree, vars, stdout) {
           base_array = base_array.concat(getValue(child, vars, stdout, "tuple").copyWithin());
         }
         return base_array;
+      case "tupleToStr":
+        expectNChildren(function_node, 2);
+        value = [];
+        for (let child of function_node.children.slice(1)) {
+          let broken_string = getValue(child, vars, stdout, "tuple");
+          value.push(broken_string.join(''));
+        }
+        return value.length === 1 ? value[0] : value;
+      case "strToTuple":
+        expectNChildren(function_node, 2);
+        value = [];
+        for (let child of function_node.children.slice(1)) {
+          value.push(getValue(child, vars, stdout, "string").split(''));
+        }
+        return value.length === 1 ? value[0] : value;
       case "ret":
         expectNChildren(function_node, 2);
         return getValue(function_node.children[1], vars, stdout);
@@ -298,8 +313,10 @@ function getValue(tree, vars, stdout, force_type) {
       }
       return value;
     case "string":
-      let str = tree.children[0].token.slice(1).replace('"', '').split('');
-      return str.length === 1 ? str[0] : str;
+      if (force_type && force_type !== "string") {
+        throw new Error(`Expected type '${force_type}' but got type 'string'`);
+      }
+      return tree.children[0].token.slice(1).replace('"', '');
     default:
       throw new Error(`Cannot get value for type '${tree.type}'`);
   }

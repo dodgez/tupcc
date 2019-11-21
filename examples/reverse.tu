@@ -9,4 +9,4 @@
 )
 
 (print (reverse (tuple 1 2 3)))
-(print (reverse "Hello, World!"))
+(print (tupleToStr (reverse (strToTuple "Hello, World!"))))
