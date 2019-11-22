@@ -1,7 +1,7 @@
 const { expectNChildren } = require('./utils');
 
 function compile(tree) {
-  return tree.children.map(tryCompile).join(";\n");
+  return tree.children.map(tryCompile).map(line => line.endsWith(';') ? line : line+';').join('');
 }
 
 function compileExpression(tree) {
@@ -20,11 +20,19 @@ function compileExpression(tree) {
   }
 }
 
-function compileIfStatement(tree) {
+function compileIfStatement(tree, force_ternary=false) {
   let code = '';
   let if_node = tree.children[1];
   let cond = tryCompile(if_node.children[1]);
-  code += `${cond} ? `;
+  let ternary = !(if_node.parent.type === 'expression' && (if_node.parent.parent.type === 'program') || (if_node.parent.parent.type === 'function_definition'));
+  if (if_node.children[2].type !== "wrapped_expression") ternary = true;
+  if (if_node.children[3].type !== "wrapped_expression") ternary = true;
+  ternary = ternary || force_ternary;
+  if (ternary) {
+    code += `((${cond}) ? `;
+  } else {
+    code += `if (${cond}) {`;
+  }
 
   let true_node = if_node.children[2];
   let true_code = 0;
@@ -32,15 +40,19 @@ function compileIfStatement(tree) {
     let true_exprs = true_node.children.slice(1, true_node.children.length - 1);
     true_exprs = true_exprs.map(tryCompile);
     if (true_exprs.length > 0) {
-      true_code = `(function() {${true_exprs.slice(0, true_exprs.length - 1).join(';')}` + (true_exprs.length > 1 ? `;` : ``) + `return ${true_exprs[true_exprs.length - 1]};})()`;
+      true_code = ternary ? `(${true_exprs.join(',')})` : true_exprs.join(';');
     } else {
-      true_code = `(function() {})()`;
+      true_code = ternary ? `undefined` : ``;
     }
   } else {
     true_code = tryCompile(true_node);
   }
 
-  code += `${true_code} : `;
+  if (ternary) {
+    code += `${true_code} : `;
+  } else {
+    code += `${true_code}} else {`;
+  }
 
   let false_node = if_node.children[3];
   let false_code = 0;
@@ -48,27 +60,37 @@ function compileIfStatement(tree) {
     let false_exprs = false_node.children.slice(1, false_node.children.length - 1);
     false_exprs = false_exprs.map(tryCompile);
     if (false_exprs.length > 0) {
-      false_code = `(function() {${false_exprs.slice(0, false_exprs.length - 1).join(';')}` + (false_exprs.length > 1 ? `;` : ``) + `return ${false_exprs[false_exprs.length - 1]};})()`;
+      false_code = ternary ? `(${false_exprs.join(',')})` : false_exprs.join(';');
     } else {
-      false_code = `(function() {})()`;
+      false_code = ternary ? `undefined` : ``;
     }
   } else {
     false_code = tryCompile(false_node);
   }
+
+  if (ternary) {
+    code += `${false_code})`;
+  } else {
+    code += `${false_code}}`;
+  }
   
-  return code + false_code;
+  return code;
 }
 
-function compileWhileStatement(tree) {
+function compileWhileStatement(tree, force_ternary=false) {
   let code = '';
   let while_node = tree.children[1];
   let cond = tryCompile(while_node.children[1]);
-  code += `while (${cond}) {`;
-
+  let ternary = !(while_node.parent.type === 'expression' && (while_node.parent.parent.type === 'program') || (while_node.parent.parent.type === 'function_definition'));
+  ternary = ternary || force_ternary;
   let exprs = while_node.children.slice(2);
   exprs = exprs.map(tryCompile);
 
-  code += exprs.slice(0, exprs.length - 1).join(';') + (exprs.length > 1 ? `;` : ``) + exprs[exprs.length - 1] + '}';
+  if (ternary) {
+    code += `(function(){let __value=0;while(${cond}) {${exprs.slice(0, exprs.length - 1).join(';')}${exprs.length>1?';':''}__value=${exprs[exprs.length - 1]};}return __value;})()`;
+  } else {
+    code += `while(${cond}) {${exprs.join(';')}}`;
+  }
 
   return code;
 }
@@ -80,9 +102,19 @@ function compileFunction(tree) {
   code = `function(${args.map(tryCompile).join(', ')}) {`;
 
   let exprs = function_node.children.slice(function_node.children.findIndex(child => child.type === "RPAREN") + 1);
-  exprs = exprs.map(tryCompile);
+  let expr_values = exprs.map(tryCompile);
 
-  code += exprs.slice(0, exprs.length - 1).join(';') + (exprs.length > 1 ? `;` : ``) + `return ${exprs[exprs.length - 1]};}`;
+  let last_expr = exprs.length > 0 ? exprs[exprs.length - 1] : null;
+  if (last_expr) {
+    if (last_expr.type === 'expression' && last_expr.children[1].type === 'if_statement') {
+      expr_values[expr_values.length - 1] = compileIfStatement(last_expr, true);
+    } else if (last_expr.type === 'expression' && last_expr.children[1].type === 'while_statement') {
+      expr_values[expr_values.length - 1] = compileWhileStatement(last_expr, true);
+    }
+  }
+  code += expr_values.slice(0, expr_values.length - 1).join(';');
+  code += (expr_values.length > 1 ? `;` : ``);
+  code += `return ${expr_values[expr_values.length - 1]}}`;
 
   return code;
 }
@@ -149,7 +181,7 @@ function compileFunctionCallIdentifier(tree) {
     case 'tuple':
       return `[${args.join(', ')}]`;
     case 'is_tuple':
-      return `["string", "object"].includes(typeof(${args[0]}))`;
+      return `Array.isArray(${args[0]})`;
     case 'head':
       return `${args[0]}[0]`;
     case 'tail':

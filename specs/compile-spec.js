@@ -1,7 +1,7 @@
-const babel = require('@babel/core');
 const expect = require('chai').expect;
 const fs = require('fs');
 const lngr = require('lngr');
+const sinon = require('sinon');
 
 const compile = require('../src/compile.js');
 const grammar = require("../grammar.json");
@@ -15,6 +15,7 @@ describe('Compiles', function() {
   before(function() {
     tokens = lngr.lexer.formatTokens(grammar.tokens);
     rules = lngr.parser.formatRules(grammar.rules);
+    sinon.createSandbox();
   });
 
   function getCode(filename) {
@@ -26,65 +27,81 @@ describe('Compiles', function() {
     let token_stream = lngr.utils.getTokenStream(lngr.lexer.lex(tokens, lngr.utils.getStringStream(code)));
     let tree = lngr.parser.parse(rules, token_stream);
     let compiled = compile(tree);
-    let transformed = babel.transformSync(compiled);
-
-    return transformed.code;
-  }
-
-  function compileCode(code) {
-    let token_stream = lngr.utils.getTokenStream(lngr.lexer.lex(tokens, lngr.utils.getStringStream(code)));
-    let tree = lngr.parser.parse(rules, token_stream);
-    let compiled = compile(tree);
-
     return compiled;
   }
 
-  it('function call', function() {
-    let output = compileCode(`
-      (define a 1)
-      (print (+ a a))
-    `);
-
-    expect(output).to.equal(`a = 1;\nconsole.log(a+a)`);
+  afterEach(function() {
+    sinon.restore();
   });
 
-  it('if statement', function() {
-    let output = compileCode(`
-      (if (eq 1 1) 3 4)
-    `);
+  it('fibonacci', function() {
+    let stub = sinon.stub(console, "log");
+    let code = getCode('./examples/fibonacci.tu');
+    Function(code)();
 
-    expect(output).to.equal(`1==1 ? 3 : 4`);
-
-    output = compileCode(`
-      (if (eq 1 1) (
-        (print true)
-      ) (
-        (print false)
-      ))
-    `);
-
-    expect(output).to.equal(`1==1 ? (function() {return console.log(true);})() : (function() {return console.log(false);})()`);
+    expect(stub.callCount).to.equal(2);
+    expect(stub.getCall(0).args).to.deep.equal([[1,1,2,3,5,8,13,21,34,55,89,144,233]]);
+    expect(stub.getCall(1).args).to.deep.equal([[1,2,3,5,8,13,21,34,55,89,144,233,377]]);
   });
 
-  it('while statement', function() {
-    let output = compileCode(`
-      (while (eq 1 1) (print true))
-    `);
+  it('forIn', function() {
+    let stub = sinon.stub(console, "log");
+    let code = getCode('./examples/forIn.tu');
+    Function(code)();
 
-    expect(output).to.equal(`while (1==1) {console.log(true)}`);
+    expect(stub.callCount).to.equal(1);
+    expect(stub.getCall(0).args).to.deep.equal([[2,3,4]]);
   });
 
-  it('function definition', function() {
-    let output = compileCode(`
-      (lambda (x y) (+ x y) (- x y))
-    `);
+  it('indexOf', function() {
+    let stub = sinon.stub(console, "log");
+    let code = getCode('./examples/indexOf.tu');
+    Function(code)();
 
-    expect(output).to.equal(`function(x, y) {x+y;return x-y;}`);
+    expect(stub.callCount).to.equal(3);
+    expect(stub.getCall(0).args).to.deep.equal([1]);
+    expect(stub.getCall(1).args).to.deep.equal([7]);
+    expect(stub.getCall(2).args).to.deep.equal([-1]);
+  });
 
-    output = compileCode(`
-      (define sum (lambda (x y) (+ x y)))
-    `);
+  it('last', function() {
+    let stub = sinon.stub(console, "log");
+    let code = getCode('./examples/last.tu');
+    Function(code)();
 
-    expect(output).to.equal(`sum = function(x, y) {return x+y;}`);
+    expect(stub.callCount).to.equal(2);
+    expect(stub.getCall(0).args).to.deep.equal([5]);
+    expect(stub.getCall(1).args).to.deep.equal([5]);
+  });
+
+  it('range', function() {
+    let stub = sinon.stub(console, "log");
+    let code = getCode('./examples/range.tu');
+    Function(code)();
+
+    expect(stub.callCount).to.equal(2);
+    expect(stub.getCall(0).args).to.deep.equal([[2,3,4,5,6,7,8,9]]);
+    expect(stub.getCall(1).args).to.deep.equal([[]]);
+  });
+
+  it('reverse', function() {
+    let stub = sinon.stub(console, "log");
+    let code = getCode('./examples/reverse.tu');
+    Function(code)();
+
+    expect(stub.callCount).to.equal(2);
+    expect(stub.getCall(0).args).to.deep.equal([[3,2,1]]);
+    expect(stub.getCall(1).args).to.deep.equal(["!dlroW ,olleH"]);
+  });
+
+  it('slice', function() {
+    let stub = sinon.stub(console, "log");
+    let code = getCode('./examples/slice.tu');
+    Function(code)();
+
+
+    expect(stub.callCount).to.equal(2);
+    expect(stub.getCall(0).args).to.deep.equal([[2,3]]);
+    expect(stub.getCall(1).args).to.deep.equal([[]]);
   });
 });
