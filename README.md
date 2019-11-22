@@ -1,4 +1,7 @@
 # tupcc
+
+[![Actions Status](https://github.com/dodgez/lngr/workflows/CI/badge.svg)](https://github.com/dodgez/lngr/actions)
+
 This is an interpreter for a LISP inspired programming language called `tuple`.
 - To run a file, pass it as an argument to `npm start` or `node index.js`.
 - To run in interactive mode, pass the `-i` or `--interactive` flag.
