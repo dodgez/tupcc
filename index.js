@@ -1,6 +1,6 @@
-const babel = require('@babel/core');
 const fs = require('fs');
 const lngr = require('lngr');
+const prettier = require('prettier');
 const program = require('commander');
 const readline = require('readline');
 
@@ -69,8 +69,8 @@ if (code) {
     let token_stream = lngr.utils.getTokenStream(lngr.lexer.lex(tokens, lngr.utils.getStringStream(code)));
     let tree = lngr.parser.parse(rules, token_stream);
     let output_code = compile(tree);
-    let transformed_code = babel.transformSync(output_code).code;
-    fs.writeFileSync(program.output, transformed_code);
+    let formatted_code = prettier.format(output_code, {parser: "babel"});
+    fs.writeFileSync(program.output, formatted_code);
   } else {
     runCode(code);
   }

@@ -1,7 +1,7 @@
 const { expectNChildren } = require('./utils');
 
 function compile(tree) {
-  return tree.children.map(tryCompile).map(line => line.endsWith(';') ? line : line+';').join('');
+  return tree.children.map(tryCompile).join(';');
 }
 
 function compileExpression(tree) {
@@ -112,8 +112,8 @@ function compileFunction(tree) {
       expr_values[expr_values.length - 1] = compileWhileStatement(last_expr, true);
     }
   }
-  code += expr_values.slice(0, expr_values.length - 1).join(';');
-  code += (expr_values.length > 1 ? `;` : ``);
+  code += expr_values.slice(0, expr_values.length - 1).map(item=>item.endsWith('}')?item:`${item};`).join('');
+  code += (expr_values.length > 1  && !expr_values[expr_values.length - 2].endsWith('}') ? `;` : ``);
   code += `return ${expr_values[expr_values.length - 1]}}`;
 
   return code;
