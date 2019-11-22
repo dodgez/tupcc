@@ -1,3 +1,4 @@
+const babel = require('@babel/core');
 const fs = require('fs');
 const lngr = require('lngr');
 const program = require('commander');
@@ -68,7 +69,8 @@ if (code) {
     let token_stream = lngr.utils.getTokenStream(lngr.lexer.lex(tokens, lngr.utils.getStringStream(code)));
     let tree = lngr.parser.parse(rules, token_stream);
     let output_code = compile(tree);
-    fs.writeFileSync(program.output, output_code);
+    let transformed_code = babel.transformSync(output_code).code;
+    fs.writeFileSync(program.output, transformed_code);
   } else {
     runCode(code);
   }

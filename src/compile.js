@@ -32,7 +32,7 @@ function compileIfStatement(tree) {
     let true_exprs = true_node.children.slice(1, true_node.children.length - 1);
     true_exprs = true_exprs.map(tryCompile);
     if (true_exprs.length > 0) {
-      true_code = `(function() {${true_exprs.slice(0, true_exprs.length - 1).join(';')}return ${true_exprs[true_exprs.length - 1]};})()`;
+      true_code = `(function() {${true_exprs.slice(0, true_exprs.length - 1).join(';')}` + (true_exprs.length > 1 ? `;` : ``) + `return ${true_exprs[true_exprs.length - 1]};})()`;
     } else {
       true_code = `(function() {})()`;
     }
@@ -48,7 +48,7 @@ function compileIfStatement(tree) {
     let false_exprs = false_node.children.slice(1, false_node.children.length - 1);
     false_exprs = false_exprs.map(tryCompile);
     if (false_exprs.length > 0) {
-      false_code = `(function() {${false_exprs.slice(0, false_exprs.length - 1).join(';')}return ${false_exprs[false_exprs.length - 1]};})()`;
+      false_code = `(function() {${false_exprs.slice(0, false_exprs.length - 1).join(';')}` + (false_exprs.length > 1 ? `;` : ``) + `return ${false_exprs[false_exprs.length - 1]};})()`;
     } else {
       false_code = `(function() {})()`;
     }
@@ -68,7 +68,7 @@ function compileWhileStatement(tree) {
   let exprs = while_node.children.slice(2);
   exprs = exprs.map(tryCompile);
 
-  code += exprs.slice(0, exprs.length - 1).join(';') + exprs[exprs.length - 1] + '}';
+  code += exprs.slice(0, exprs.length - 1).join(';') + (exprs.length > 1 ? `;` : ``) + exprs[exprs.length - 1] + '}';
 
   return code;
 }
@@ -82,7 +82,7 @@ function compileFunction(tree) {
   let exprs = function_node.children.slice(function_node.children.findIndex(child => child.type === "RPAREN") + 1);
   exprs = exprs.map(tryCompile);
 
-  code += exprs.slice(0, exprs.length - 1).join(';') + `return ${exprs[exprs.length - 1]};}`;
+  code += exprs.slice(0, exprs.length - 1).join(';') + (exprs.length > 1 ? `;` : ``) + `return ${exprs[exprs.length - 1]};}`;
 
   return code;
 }
@@ -184,6 +184,8 @@ function tryCompile(tree) {
     case "string":
       let str = tree.children[0].token.slice(1).replace('"', '');
       return `"${str}"`;
+    case "BOOLEAN":
+      return tree.token;
     default:
       throw new Error(`Unexpected type to compile ${tree.type}`);
   }
