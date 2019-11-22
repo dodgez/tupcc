@@ -184,6 +184,8 @@ function tryCompile(tree) {
     case "string":
       let str = tree.children[0].token.slice(1).replace('"', '');
       return `"${str}"`;
+    case "BOOLEAN":
+      return tree.token;
     default:
       throw new Error(`Unexpected type to compile ${tree.type}`);
   }
