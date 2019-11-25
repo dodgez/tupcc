@@ -196,6 +196,12 @@ function compileFunctionCallIdentifier(tree) {
       return `${args[0]}.join('')`;
     case 'strToTuple':
       return `${args[0]}.split('')`;
+    case "obj":
+      return `Object.fromEntries([${args.join(", ")}])`;
+    case "getValue":
+      return `${args[0]}[${args[1]}]`;
+    case "setValue":
+      return `${args[0]}[${args[1]}] = ${args[2]}`;
     case 'requireRun':
       return `require(${args[0]})${args.length>1?`.${args[1].replace(/"/g, '')}`:``}(${args.slice(2)})`;
     default:
