@@ -7,6 +7,8 @@ function prettyPrint(value) {
     return "(tuple " + value.map(item => prettyPrint(item)).join(' ') + ")";
   } else if (type === "function") {
     return "(function definition)";
+  } else if (type === "string") {
+    return `"${value}"`;
   } else {
     return value;
   }
