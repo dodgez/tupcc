@@ -13,6 +13,8 @@ function prettyPrint(value) {
       const str = prettyPrint(value[key]);
       return prettyPrint([key, str]);
     }) + ")";
+  } else if (type === "string") {
+    return `"${value}"`;
   } else {
     return value;
   }

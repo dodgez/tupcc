@@ -1,1 +1,1 @@
-(print (tupleToStr (requireRun "../examples/runJS" "say_hello")))
+(print (requireRun "../examples/runJS" "say_hello"))

@@ -94,6 +94,15 @@ describe('Compiles', function() {
     expect(stub.getCall(1).args).to.deep.equal(["!dlroW ,olleH"]);
   });
 
+  it('runJS', function() {
+    let stub = sinon.stub(console, "log");
+    let code = getCode('./examples/runJS.tu');
+    eval(code);
+
+    expect(stub.callCount).to.equal(1);
+    expect(stub.getCall(0).args).to.deep.equal(["\"Hello, World!\" from JavaScript"]);
+  });
+
   it('slice', function() {
     let stub = sinon.stub(console, "log");
     let code = getCode('./examples/slice.tu');
