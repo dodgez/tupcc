@@ -196,6 +196,12 @@ function compileFunctionCallIdentifier(tree) {
       return `${args[0]}.join('')`;
     case 'strToTuple':
       return `${args[0]}.split('')`;
+    case "obj":
+      return `Object.fromEntries([${args.join(", ")}])`;
+    case "getValue":
+      return `${args[0]}[${args[1]}]`;
+    case "setValue":
+      return `${args[0]}[${args[1]}] = ${args[2]}`;
     default:
       return `${function_name}(${args.join(', ')})`;
   }

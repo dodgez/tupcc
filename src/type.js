@@ -1,7 +1,9 @@
+const lngr = require("lngr");
+
 function findType(value) {
   if (Array.isArray(value)) {
     return "tuple";
-  } else if (typeof (value) === "object") {
+  } else if (typeof(value) === "object" && value instanceof lngr.utils.ASTNode) {
     return "function";
   } else {
     return typeof (value);

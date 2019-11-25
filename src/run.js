@@ -76,6 +76,9 @@ function runFunctionCall(tree, vars, stdout) {
     }
     return eval(eval_str);
   } else if (function_call_type === "IDENTIFIER") {
+    let obj;
+    let key;
+    let key_type;
     let value;
     let first_value;
     switch (function_name) {
@@ -241,6 +244,36 @@ function runFunctionCall(tree, vars, stdout) {
           value.push(getValue(child, vars, stdout, "string").split(''));
         }
         return value.length === 1 ? value[0] : value;
+      case "obj":
+        obj = {};
+        for (let child of function_node.children.slice(1)) {
+          let key_value = getValue(child, vars, stdout, "tuple");
+          let key_type = findType(key_value[0]);
+          if (key_type !== 'string' && key_type !== 'number') {
+            throw new Error(`Expected key type of string or number but got ${key_type}`);
+          }
+
+          obj[key_value[0]] = key_value[1];
+        }
+        return obj;
+      case "getValue":
+        obj = getValue(function_node.children[1], vars, stdout, "object");
+        key = getValue(function_node.children[2], vars, stdout, "string");
+        key_type = findType(key);
+        if (key_type !== 'string' && key_type !== 'number') {
+          throw new Error(`Expected key type of string or number but got ${key_type}`);
+        }
+        return obj[key];
+      case "setValue":
+        obj = getValue(function_node.children[1], vars, stdout, "object");
+        key = getValue(function_node.children[2], vars, stdout, "string");
+        key_type = findType(key);
+        if (key_type !== 'string' && key_type !== 'number') {
+          throw new Error(`Expected key type of string or number but got ${key_type}`);
+        }
+        value = getValue(function_node.children[3], vars, stdout);
+        obj[key] = value;
+        return obj[key];
       case "ret":
         expectNChildren(function_node, 2);
         return getValue(function_node.children[1], vars, stdout);
