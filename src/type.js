@@ -13,7 +13,6 @@ function coerceBack(js_value) {
 
   switch (js_type) {
     case "string":
-      return js_value.split('');
     case "number":
       return js_value;
     case "object":
@@ -30,14 +29,6 @@ function coerceValue(value) {
 
   switch (type) {
     case "tuple":
-      let is_string = true;
-      for (let item of value) {
-        if (typeof(item) !== "string") {
-          is_string = false;
-        }
-      }
-
-      return is_string ? value.join("") : value;
     case "number":
       return value;
     default:
