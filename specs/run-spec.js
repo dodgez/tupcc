@@ -101,6 +101,7 @@ describe('Runs', function() {
     const vars = {};
 
     expect(run(tree, vars)).to.deep.equal([
+      "\"\"Hello, World!\" from JavaScript\"",
       "\"\"Hello, World!\" from JavaScript\""
     ]);
   });
