@@ -7,8 +7,6 @@ const compile = require('../src/compile.js');
 const grammar = require("../grammar.json");
 
 describe('Compiles', function() {
-  this.timeout("10s");
-
   let tokens;
   let rules;
 
@@ -72,6 +70,15 @@ describe('Compiles', function() {
     expect(stub.callCount).to.equal(2);
     expect(stub.getCall(0).args).to.deep.equal([5]);
     expect(stub.getCall(1).args).to.deep.equal([5]);
+  });
+
+  it('partition', function() {
+    let stub = sinon.stub(console, "log");
+    let code = getCode('./examples/partition.tu');
+    Function(code)();
+
+    expect(stub.callCount).to.equal(1);
+    expect(stub.getCall(0).args).to.deep.equal([451]);
   });
 
   it('range', function() {
