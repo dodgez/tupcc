@@ -5,8 +5,9 @@
 This is an interpreter for a LISP inspired programming language called `tuple`.
 - To run a file, pass it as an argument to `npm start` or `node index.js`.
 - To run in interactive mode, pass the `-i` or `--interactive` flag.
+- To compile to JavaScript, pass the `-c` or `--compile` flag.
 
-If you would like to run a file and interactively run code afterwards, follow both of the above instructions.
+If you would like to run a file and interactively run code afterwards, instructions 1 and 2.
 
 The following is a short description of the syntax of the language.
 To see some more example code, look at the `examples/` directory.

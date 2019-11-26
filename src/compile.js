@@ -99,7 +99,7 @@ function compileFunction(tree) {
   let code = '';
   let function_node = tree.children[1];
   let args = function_node.children.slice(2, function_node.children.findIndex(child => child.type === "RPAREN"));
-  code = `function(${args.map(tryCompile).join(', ')}) {`;
+  code = `(${args.map(tryCompile).join(', ')})=>{`;
 
   let exprs = function_node.children.slice(function_node.children.findIndex(child => child.type === "RPAREN") + 1);
   let expr_values = exprs.map(tryCompile);

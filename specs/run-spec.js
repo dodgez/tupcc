@@ -66,6 +66,16 @@ describe('Runs', function() {
     ]);
   });
 
+  it('partition', function() {
+    this.timeout("5s");
+    const tree = getCode('examples/partition.tu');
+    const vars = {};
+
+    expect(run(tree, vars)).to.deep.equal([
+      451
+    ]);
+  });
+
   it('range', function() {
     const tree = getCode('examples/range.tu');
     const vars = {};
