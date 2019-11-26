@@ -99,8 +99,9 @@ describe('Compiles', function() {
     let code = getCode('./examples/runJS.tu');
     eval(code);
 
-    expect(stub.callCount).to.equal(1);
+    expect(stub.callCount).to.equal(2);
     expect(stub.getCall(0).args).to.deep.equal(["\"Hello, World!\" from JavaScript"]);
+    expect(stub.getCall(1).args).to.deep.equal(["\"Hello, World!\" from JavaScript"]);
   });
 
   it('slice', function() {
