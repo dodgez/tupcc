@@ -18,9 +18,7 @@ function coerceBack(js_value) {
     case "number":
       return js_value;
     case "object":
-      if (Array.isArray(js_value)) {
-        return js_value;
-      }
+      return js_value;
     default:
       throw new Error(`Cannot coerce JavaScript type ${js_type} back`);
   }

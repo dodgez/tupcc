@@ -82,11 +82,15 @@ function runFunctionCall(tree, vars, stdout) {
     let value;
     let first_value;
     switch (function_name) {
+      case "require":
+        expectNChildren(function_node, 2);
+        let module = require(getValue(function_node.children[1], vars, stdout, "string"));
+        return coerceBack(module);
       case "requireRun":
         expectNChildren(function_node, 3);
-        let module = require(getValue(function_node.children[1], vars, stdout, "string"));
+        let module_to_run = require(getValue(function_node.children[1], vars, stdout, "string"));
         let func_name = getValue(function_node.children[2], vars, stdout, "string");
-        let func_to_call = func_name ? module[func_name] : module;
+        let func_to_call = func_name ? module_to_run[func_name] : module_to_run;
         let args = function_node.children.slice(3).map(item => coerceValue(getValue(item, vars, stdout)));
         return coerceBack(func_to_call(...args));
       case "print":
@@ -285,31 +289,36 @@ function runFunctionCall(tree, vars, stdout) {
     function_node = function_node.children[0].children[1];
   }
 
-  let var_names = function_node.children.slice(2, function_node.children.findIndex(child => child.type === "RPAREN"));
-  let args = tree.children[1].children.slice(1);
+  if (typeof(function_node) === 'function') {
+    let args = tree.children[1].children.slice(1);
+    return function_node(...args);
+  } else {
+    let var_names = function_node.children.slice(2, function_node.children.findIndex(child => child.type === "RPAREN"));
+    let args = tree.children[1].children.slice(1);
 
-  if (var_names.length !== args.length) {
-    throw new Error(`Function expects ${var_names.length} arguments but ${args.length} ${args.length === 1 ? "is" : "are"} passed`);
+    if (var_names.length !== args.length) {
+      throw new Error(`Function expects ${var_names.length} arguments but ${args.length} ${args.length === 1 ? "is" : "are"} passed`);
+    }
+
+    let new_vars = Object.assign({}, vars);
+    var_names.forEach((var_name, i) => {
+      let value = getValue(args[i], vars, stdout);
+      new_vars[var_name.token] = {
+        value,
+        type: findType(value),
+        name: var_name.token
+      };
+    });
+    vars = new_vars;
+
+    let function_exprs = function_node.children.slice(function_node.children.findIndex(child => child.type === "RPAREN") + 1);
+
+    function_exprs = function_exprs.map(function_expr => {
+      return getValue(function_expr, vars, stdout);
+    });
+
+    return function_exprs.length > 0 ? function_exprs[function_exprs.length - 1] : 0;
   }
-
-  let new_vars = Object.assign({}, vars);
-  var_names.forEach((var_name, i) => {
-    let value = getValue(args[i], vars, stdout);
-    new_vars[var_name.token] = {
-      value,
-      type: findType(value),
-      name: var_name.token
-    };
-  });
-  vars = new_vars;
-
-  let function_exprs = function_node.children.slice(function_node.children.findIndex(child => child.type === "RPAREN") + 1);
-
-  function_exprs = function_exprs.map(function_expr => {
-    return getValue(function_expr, vars, stdout);
-  });
-
-  return function_exprs.length > 0 ? function_exprs[function_exprs.length - 1] : 0;
 }
 
 function getValue(tree, vars, stdout, force_type) {
