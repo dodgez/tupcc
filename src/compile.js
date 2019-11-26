@@ -20,11 +20,20 @@ function compileExpression(tree) {
   }
 }
 
+function is_ternary(tree) {
+  if (tree.parent.type !== 'expression') return true;
+  if (tree.parent.parent.type === 'program') return false;
+  if (tree.parent.parent.type === 'function_definition') return false;
+  if (tree.parent.parent.type === 'while_statement') return false;
+
+  return true;
+}
+
 function compileIfStatement(tree, force_ternary=false) {
   let code = '';
   let if_node = tree.children[1];
   let cond = tryCompile(if_node.children[1]);
-  let ternary = !(if_node.parent.type === 'expression' && (if_node.parent.parent.type === 'program') || (if_node.parent.parent.type === 'function_definition'));
+  let ternary = is_ternary(if_node);
   if (if_node.children[2].type !== "wrapped_expression") ternary = true;
   if (if_node.children[3].type !== "wrapped_expression") ternary = true;
   ternary = ternary || force_ternary;
@@ -81,7 +90,7 @@ function compileWhileStatement(tree, force_ternary=false) {
   let code = '';
   let while_node = tree.children[1];
   let cond = tryCompile(while_node.children[1]);
-  let ternary = !(while_node.parent.type === 'expression' && (while_node.parent.parent.type === 'program') || (while_node.parent.parent.type === 'function_definition'));
+  let ternary = is_ternary(while_node);
   ternary = ternary || force_ternary;
   let exprs = while_node.children.slice(2);
   exprs = exprs.map(tryCompile);

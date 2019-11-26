@@ -71,9 +71,7 @@ describe('Runs', function() {
     const tree = getCode('examples/partition.tu');
     const vars = {};
 
-    expect(run(tree, vars)).to.deep.equal([
-      451
-    ]);
+    expect(run(tree, vars)).to.deep.equal([451]);
   });
 
   it('range', function() {
